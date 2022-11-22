@@ -97,6 +97,13 @@ if ! dd "if=${TMPDIR}/${TARGET_LIB}" bs=1 "skip=${FILE_OFFSET}" >> "${TMPDIR}/${
     abort "Failed to patch ${TMPDIR}/${TARGET_LIB}, step3"
 fi
 
+# check file size
+orig_size=$(stat -c "%s" "${TMPDIR}/${TARGET_LIB}")
+patched_size=$(stat -c "%s" "${TMPDIR}/${PATCHED_LIB}")
+if [ "$orig_size" != "$patched_size" ]; then
+    abort "Failed to patch ${TMPDIR}/${TARGET_LIB}: unexpected file size"
+fi
+
 # copy to target dir
 mkdir -p "${MODPATH}/${TARGET_DIR}" || abort "Failed to create ${MODPATH}/${TARGET_DIR}"
 cp -f "${TMPDIR}/${PATCHED_LIB}" "${MODPATH}/${TARGET_DIR}/${TARGET_LIB}" || abort "Failed to copy patched lib to target"
