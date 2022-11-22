@@ -1,0 +1,6 @@
+id=logddisablerlite
+name=LogDisablerLite
+version=1.0
+versionCode=1
+author=shizhx@github
+description=Disable Logging to logcat
