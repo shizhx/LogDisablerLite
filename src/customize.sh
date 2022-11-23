@@ -24,7 +24,7 @@ if [ -z "$TARGET_FUNC_VADDR" ]; then
 fi
 ui_print "Success to get virtual address of __android_log_is_loggable: ${TARGET_FUNC_VADDR}"
 # Example vaddr 00000000000089ac, so add '0x' prefix to it and convert to number
-TARGET_FUNC_VADDR=$(printf "%d" "0x${TARGET_FUNC_VADDR}")
+TARGET_FUNC_VADDR=$(printf "%ld" "0x${TARGET_FUNC_VADDR}")
 
 # parse liblog.so to get elf headers
 HEADERS=$(readelf -l "${TMPDIR}/${TARGET_LIB}" | sed '/Program Headers/,/Section to Segment mapping/!d;/Program Headers/d;/Section to Segment mapping/d')
@@ -57,10 +57,10 @@ while IFS= read -r line; do
     fi
 
     # convert to number to avoid [ -lt ] statement error
-    Offset=$(printf "%d" "$Offset")
-    VirtAddr=$(printf "%d" "$VirtAddr")
-    PhysAddr=$(printf "%d" "$PhysAddr")
-    MemSiz=$(printf "%d" "$MemSiz")
+    Offset=$(printf "%ld" "$Offset")
+    VirtAddr=$(printf "%ld" "$VirtAddr")
+    PhysAddr=$(printf "%ld" "$PhysAddr")
+    MemSiz=$(printf "%ld" "$MemSiz")
 
     MaxVirtAddr=$((VirtAddr+MemSiz))
     if [ "$TARGET_FUNC_VADDR" -lt "$VirtAddr" ] || [ "$TARGET_FUNC_VADDR" -ge "$MaxVirtAddr" ]; then
