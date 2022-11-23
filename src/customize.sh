@@ -5,6 +5,7 @@ TARGET_LIB="liblog.so"
 PATCHED_LIB="liblog_patched.so"
 
 # for local test
+# TARGET_DIR="/sdcard/test_lib"
 # TMPDIR="/sdcard/test_tmp"
 # MODPATH="/sdcard/test_mod"
 # ui_print(){
@@ -80,19 +81,42 @@ if [ "$FILE_OFFSET" -lt 0 ]; then
 fi
 ui_print "Calculated file offset of __android_log_is_loggable: ${FILE_OFFSET}"
 
+# normal patched instructions
+# MOV W0, #0
+# RET
+PATCHED_INSTS="\x00\x00\x80\x52\xc0\x03\x5f\xd6"
+PATCHED_LEN=8
+
+# handle ARMv8.3 pointer auth, see https://www.qualcomm.com/media/documents/files/whitepaper-pointer-authentication-on-armv8-3.pdf
+FIRST_INSTR=$(xxd -p -l4 -s "$FILE_OFFSET" "${TMPDIR}/${TARGET_LIB}")
+if [ $? -ne 0 ] || [ -z "$FIRST_INSTR" ]; then
+    abort "Failed to get first instruction at ${FILE_OFFSET}"
+fi
+
+# PACIASP instruction since ARMv8.3
+if [ "$FIRST_INSTR" = "3f2303d5" ]; then
+    ui_print "Skip the first PACIASP instruction"
+    FILE_OFFSET=$((FILE_OFFSET+4))
+    ui_print "Insert AUTIASP instruction before RET"
+    # MOV W0, #0
+    # AUTIASP
+    # RET
+    PATCHED_INSTS="\x00\x00\x80\x52\xbf\x23\x03\xd5\xc0\x03\x5f\xd6"
+    PATCHED_LEN=12
+fi
+
 # patch liblog.so
 if ! dd "if=${TMPDIR}/${TARGET_LIB}" bs=1 "count=${FILE_OFFSET}" > "${TMPDIR}/${PATCHED_LIB}"; then
     abort "Failed to patch ${TMPDIR}/${TARGET_LIB}, step1"
 fi
-# patch with
-# MOV W0, #0
-# RET
-if ! printf "\x00\x00\x80\x52\xc0\x03\x5f\xd6" >> "${TMPDIR}/${PATCHED_LIB}"; then
+
+# patch
+if ! printf "%b" "$PATCHED_INSTS" >> "${TMPDIR}/${PATCHED_LIB}"; then
     abort "Failed to patch ${TMPDIR}/${TARGET_LIB}, step2"
 fi
 
 # append remaining file content of liblog.so
-FILE_OFFSET=$((FILE_OFFSET+8))
+FILE_OFFSET=$((FILE_OFFSET+PATCHED_LEN))
 if ! dd "if=${TMPDIR}/${TARGET_LIB}" bs=1 "skip=${FILE_OFFSET}" >> "${TMPDIR}/${PATCHED_LIB}"; then
     abort "Failed to patch ${TMPDIR}/${TARGET_LIB}, step3"
 fi
