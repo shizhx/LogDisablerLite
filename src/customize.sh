@@ -12,6 +12,14 @@ PATCHED_LIB="liblog_patched.so"
 #     echo "$*"
 # }
 
+
+chmod a+x "${TMPDIR}/toybox-aarch64"
+READELF=readelf
+if ! command -v "readelf"; then
+    ui_print "readelf command not found, use toybox instead"
+    READELF=${TMPDIR}/toybox-aarch64 readelf
+fi
+
 # copy to TMPDIR
 if ! cp -f "${TARGET_DIR}/${TARGET_LIB}" "${TMPDIR}/${TARGET_LIB}"; then
     abort "Failed to copy ${TARGET_DIR}/${TARGET_LIB} to ${TMPDIR}/${TARGET_LIB}"
@@ -19,7 +27,7 @@ fi
 ui_print "Success to copy ${TARGET_DIR}/${TARGET_LIB} to ${TMPDIR}/${TARGET_LIB}"
 
 # parse liblog.so to get the virtual address of __android_log_is_loggable
-TARGET_FUNC_VADDR=$(readelf -sW "${TMPDIR}/${TARGET_LIB}" | grep -w __android_log_is_loggable | awk '{print $2}')
+TARGET_FUNC_VADDR=$($READELF -sW "${TMPDIR}/${TARGET_LIB}" | grep -w __android_log_is_loggable | awk '{print $2}')
 if [ -z "$TARGET_FUNC_VADDR" ]; then
     abort "Failed to get virtual address of __android_log_is_loggable from ${TMPDIR}/${TARGET_LIB}"
 fi
@@ -28,7 +36,7 @@ ui_print "Success to get virtual address of __android_log_is_loggable: ${TARGET_
 TARGET_FUNC_VADDR=$(printf "%ld" "0x${TARGET_FUNC_VADDR}")
 
 # parse liblog.so to get elf headers
-HEADERS=$(readelf -l "${TMPDIR}/${TARGET_LIB}" | sed '/Program Headers/,/Section to Segment mapping/!d;/Program Headers/d;/Section to Segment mapping/d')
+HEADERS=$($READELF -l "${TMPDIR}/${TARGET_LIB}" | sed '/Program Headers/,/Section to Segment mapping/!d;/Program Headers/d;/Section to Segment mapping/d')
 if [ -z "$HEADERS" ]; then
     abort "Failed to parse program headers from ${TMPDIR}/${TARGET_LIB}"
 fi
