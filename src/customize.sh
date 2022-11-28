@@ -13,11 +13,11 @@ PATCHED_LIB="liblog_patched.so"
 # }
 
 
-chmod a+x "${TMPDIR}/toybox-aarch64"
 READELF=readelf
 if ! command -v "readelf"; then
+    chmod a+x "${MODPATH}/toybox-aarch64"
     ui_print "readelf command not found, use toybox instead"
-    READELF=${TMPDIR}/toybox-aarch64 readelf
+    READELF=${MODPATH}/toybox-aarch64 readelf
 fi
 
 # copy to TMPDIR
