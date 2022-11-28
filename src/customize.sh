@@ -14,7 +14,9 @@ PATCHED_LIB="liblog_patched.so"
 
 
 READELF="${MODPATH}/toybox-aarch64 readelf"
-chmod a+x "${MODPATH}/toybox-aarch64"
+if ! chmod a+x "${MODPATH}/toybox-aarch64"; then
+    abort "Failed to chmod a+x ${MODPATH}/toybox-aarch64"
+fi
 
 # copy to TMPDIR
 if ! cp -f "${TARGET_DIR}/${TARGET_LIB}" "${TMPDIR}/${TARGET_LIB}"; then
