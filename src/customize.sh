@@ -24,7 +24,7 @@ ui_print "Success to copy ${TARGET_DIR}/${TARGET_LIB} to ${TMPDIR}/${TARGET_LIB}
 
 # parse liblog.so to get the virtual address of __android_log_is_loggable
 TARGET_FUNC_VADDR=$($READELF -sW "${TMPDIR}/${TARGET_LIB}" | grep -w __android_log_is_loggable | awk '{print $2}')
-if [ -z "$TARGET_FUNC_VADDR" ]; then
+if [ $? -ne 0 ] || [ -z "$TARGET_FUNC_VADDR" ]; then
     abort "Failed to get virtual address of __android_log_is_loggable from ${TMPDIR}/${TARGET_LIB}"
 fi
 ui_print "Success to get virtual address of __android_log_is_loggable: ${TARGET_FUNC_VADDR}"
@@ -33,7 +33,7 @@ TARGET_FUNC_VADDR=$(printf "%ld" "0x${TARGET_FUNC_VADDR}")
 
 # parse liblog.so to get elf headers
 HEADERS=$($READELF -l "${TMPDIR}/${TARGET_LIB}" | sed '/Program Headers/,/Section to Segment mapping/!d;/Program Headers/d;/Section to Segment mapping/d')
-if [ -z "$HEADERS" ]; then
+if [ $? -ne 0 ] || [ -z "$HEADERS" ]; then
     abort "Failed to parse program headers from ${TMPDIR}/${TARGET_LIB}"
 fi
 
