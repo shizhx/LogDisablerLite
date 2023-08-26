@@ -138,4 +138,12 @@ fi
 mkdir -p "${MODPATH}/${TARGET_DIR}" || abort "Failed to create ${MODPATH}/${TARGET_DIR}"
 cp -f "${TMPDIR}/${PATCHED_LIB}" "${MODPATH}/${TARGET_DIR}/${TARGET_LIB}" || abort "Failed to copy patched lib to target"
 
-ui_print "Success to patch ${TARGET_DIR}/${TARGET_LIB}, reboot to take effect!"
+ui_print "Success to copy patched liblog.so to ${MODPATH}/${TARGET_DIR}/${TARGET_LIB}"
+
+# set SELinux context on KernelSU
+if [ "$KSU" ]; then
+    chcon "u:object_r:system_lib_file:s0" "${MODPATH}/${TARGET_DIR}/${TARGET_LIB}"
+    ui_print "Success to set SELinux context for liblog.so"
+fi
+
+ui_print "Reboot to take effect!"
