@@ -4,7 +4,7 @@ Some Android OS like MIUI always print log even if log level turn to off in Deve
 
 ## Tested
 
-### Mgisk
+### Magisk
 
 - Realme GT2 @realme UI 3.0
 - Redmi K50 @ MIUI 13.0.13
